@@ -21,6 +21,7 @@ space := $(empty) $(empty)
 
 protobuf_generator ?= protoc
 thrift_generator ?= thrift
+msgpack_generator ?= msgpack-idl
 activemqprotobuf_cp := $(subst $(space),:,$(wildcard lib/activemq-*.jar))
 activemqprotobuf_generator ?= java -cp "$(activemqprotobuf_cp)" org.apache.activemq.protobuf.compiler.AltJavaGenerator
 cks_generator ?= java -jar lib/cks-tool.jar
@@ -31,6 +32,7 @@ protostuff_compiler ?= $(wildcard lib/protostuff-compiler-*.jar)
 # Default to 'no' because we might not have these tools available.
 Generate_protobuf ?= n
 Generate_thrift ?= n
+Generate_msgpack ?= n
 
 # Default to 'yes' because the generator tools are included in 'lib/'.
 Generate_activemqprotobuf ?= y
@@ -79,6 +81,8 @@ define EachSchema
 
 ifneq ($(findstring .activemq.proto,$(2)),)
 	NeedToGenerate_$(1) := $(Generate_activemqprotobuf)
+else ifneq ($(findstring .msgpack.thrift,$(2)),)
+	NeedToGenerate_$(1) := $(Generate_msgpack)
 else ifneq ($(findstring .protostuff.proto,$(2)),)
 	NeedToGenerate_$(1) := $(Generate_protostuff)
 else ifneq ($(findstring .proto,$(2)),)
@@ -107,6 +111,8 @@ build/gen/$(2).gen: schema/$(2)
 	$(p2)touch $$@
 ifneq ($(findstring .activemq.proto,$(2)),)
 	$(p1)$(activemqprotobuf_generator) --out=build/gen/$(2) $$<
+else ifneq ($(findstring .msgpack.thrift,$(2)),)
+	$(p1)$(msgpack_generator) -o build/gen/$(2) --gen java $$<
 else ifneq ($(findstring .protostuff.proto,$(2)),)
 	$(p1)java -Dsource=$$< -Doutput=java_bean -Doptions=builder_pattern,alphanumeric,generate_field_map,separate_schema -DoutputDir=build/gen/$(2) -jar $(protostuff_compiler)
 else ifneq ($(findstring .proto,$(2)),)

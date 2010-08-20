@@ -245,6 +245,7 @@ public class BenchmarkRunner
 		TestGroups groups = new TestGroups();
 
 		// Binary Formats
+		MessagePack.register(groups);
 		Protobuf.register(groups);
 		Thrift.register(groups);
 		ActiveMQProtobuf.register(groups);
